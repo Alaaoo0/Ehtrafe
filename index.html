@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محلل Binance — كاشف الانفجار الاحترافي</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif; background: #0d1117; color: #e6edf3; padding: 16px; min-height: 100vh; }
+  h1 { font-size: 18px; text-align: center; margin-bottom: 6px; color: #f0b90b; }
+  .subtitle { text-align: center; font-size: 12px; color: #8b949e; margin-bottom: 16px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #161b22; padding: 4px; border-radius: 10px; border: 1px solid #30363d; overflow-x: auto; }
+  .tab { flex: 1; padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 500; color: #8b949e; white-space: nowrap; }
+  .tab.active { background: #f0b90b; color: #0d1117; font-weight: bold; }
+  .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  select, button, input { flex: 1; min-width: 100px; padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: #161b22; color: #e6edf3; font-size: 13px; font-family: inherit; }
+  input::placeholder { color: #6e7681; }
+  button { background: #f0b90b; border-color: #f0b90b; color: #0d1117; font-weight: bold; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .radar-btn { background: linear-gradient(135deg, #f0b90b, #f85149); border: none; color: white; }
+  .analyze-btn { background: linear-gradient(135deg, #238636, #3fb950); border: none; color: white; }
+  .explode-btn { background: linear-gradient(135deg, #a371f7, #f85149); border: none; color: white; font-size: 14px; padding: 14px; animation: glow 2s infinite; }
+  @keyframes glow { 0%,100% { box-shadow: 0 0 8px #a371f7; } 50% { box-shadow: 0 0 24px #f85149; } }
+  .single-search-box { background: #161b22; border: 2px solid #3fb950; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .single-search-title { font-size: 13px; font-weight: bold; color: #3fb950; margin-bottom: 8px; }
+  .single-search-row { display: flex; gap: 6px; }
+  .single-search-row input { flex: 3; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+  .single-search-row button { flex: 1; font-size: 12px; }
+  .status { text-align: center; font-size: 13px; padding: 10px; border-radius: 8px; margin-bottom: 12px; display: none; }
+  .status.loading { background: #1f6feb22; color: #58a6ff; display: block; }
+  .status.error { background: #f8514922; color: #f85149; display: block; }
+  .status.success { background: #23863622; color: #3fb950; display: block; }
+  .status.explode { background: linear-gradient(135deg, #a371f722, #f8514922); color: #a371f7; display: block; border: 1px solid #a371f7; font-weight: bold; }
+  .token { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .token.radar { border: 2px solid #f0b90b; }
+  .token.single { border: 2px solid #3fb950; }
+  .token.explode { border: 2px solid #a371f7; background: linear-gradient(180deg, #a371f722 0%, #161b22 100%); box-shadow: 0 0 25px #a371f755; animation: pulse 2s infinite; }
+  .token.explode.ultra { border-color: #f85149; box-shadow: 0 0 35px #f8514999; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 15px #a371f755; } 50% { box-shadow: 0 0 30px #f8514999; } }
+  .token-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+  .token-name { font-weight: bold; font-size: 15px; }
+  .token-symbol { font-size: 12px; color: #8b949e; background: #21262d; padding: 2px 8px; border-radius: 6px; }
+  .rank { display: inline-block; background: #1f6feb; color: white; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 12px; font-weight: bold; margin-left: 8px; }
+  .explode-badge { color: white; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: bold; animation: pulse 1.5s infinite; }
+  .explode-badge.ultra { background: linear-gradient(135deg, #f85149, #f0b90b); }
+  .explode-badge.strong { background: linear-gradient(135deg, #a371f7, #58a6ff); }
+  .explode-badge.medium { background: linear-gradient(135deg, #3fb950, #58a6ff); }
+  .token-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+  .stat-name { color: #8b949e; }
+  .stat-val { color: #e6edf3; font-weight: 500; }
+  .stat-val.up { color: #3fb950; }
+  .stat-val.down { color: #f85149; }
+  .stat-val.hot { color: #f85149; font-weight: bold; }
+  .rec-box { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; }
+  .rec-box.explode { background: linear-gradient(135deg, #a371f733, #f8514933); border: 1px solid #a371f7; }
+  .rec-box.ultra { background: linear-gradient(135deg, #f8514933, #f0b90b33); border: 2px solid #f85149; }
+  .rec-emoji { font-size: 22px; }
+  .rec-title { font-weight: bold; font-size: 14px; }
+  .rec-score { font-size: 11px; color: #8b949e; margin-top: 2px; }
+  .strategy { margin-top: 8px; padding: 10px; background: #0d1117; border-radius: 6px; font-size: 12px; border-right: 3px solid #f0b90b; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .strategy-item { display: flex; justify-content: space-between; }
+  .strategy-label { color: #8b949e; }
+  .strategy-value { font-weight: bold; }
+  .strategy-value.entry { color: #58a6ff; }
+  .strategy-value.target { color: #3fb950; }
+  .strategy-value.stop { color: #f85149; }
+
+  /* ⚡ لوحة الإشارات */
+  .explode-signals { margin-top: 10px; padding: 10px; background: #0d1117; border-radius: 8px; border: 1px solid #a371f7; }
+  .explode-signals-title { font-size: 11px; color: #a371f7; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .signal-group { margin-bottom: 8px; }
+  .signal-group-title { font-size: 10px; color: #8b949e; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid #21262d; }
+  .signal-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 4px 0; }
+  .signal-label { color: #8b949e; display: flex; align-items: center; gap: 4px; }
+  .signal-label .icon { font-size: 12px; }
+  .signal-value { font-weight: bold; font-size: 11px; }
+  .signal-value.on { color: #3fb950; }
+  .signal-value.strong { color: #f85149; }
+  .signal-value.off { color: #6e7681; }
+  .signal-bar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; margin-top: 3px; width: 70px; display: inline-block; vertical-align: middle; }
+  .signal-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+  .explode-meter { margin-top: 10px; padding: 12px; background: linear-gradient(135deg, #1a0f1f, #161b22); border-radius: 8px; border: 1px solid #a371f7; text-align: center; position: relative; overflow: hidden; }
+  .explode-meter.ultra { border-color: #f85149; }
+  .explode-meter-label { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+  .explode-meter-value { font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #a371f7, #f85149, #f0b90b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; background-size: 200% 200%; animation: gradient 3s ease infinite; }
+  @keyframes gradient { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .explode-meter-bar { height: 10px; background: #21262d; border-radius: 5px; margin-top: 8px; overflow: hidden; }
+  .explode-meter-fill { height: 100%; background: linear-gradient(90deg, #a371f7, #f85149, #f0b90b); border-radius: 5px; transition: width 0.6s; }
+  .explode-meter-info { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: #8b949e; }
+
+  .backtest-box { margin-top: 10px; padding: 10px; background: #0d1117; border-radius: 8px; border: 1px solid #58a6ff; }
+  .backtest-title { font-size: 11px; color: #58a6ff; font-weight: bold; margin-bottom: 6px; }
+  .backtest-row { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; }
+  .backtest-row .label { color: #8b949e; }
+  .backtest-row .value { font-weight: bold; }
+  .backtest-row .value.win { color: #3fb950; }
+  .backtest-row .value.loss { color: #f85149; }
+
+  .warning-tag { display: inline-block; background: #f85149; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; margin: 4px 2px 0 0; font-weight: bold; }
+
+  .empty { text-align: center; padding: 30px; color: #8b949e; font-size: 14px; }
+  .whale-panel { background: #161b22; border: 2px solid #f0b90b; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .whale-title { font-size: 14px; font-weight: bold; color: #f0b90b; margin-bottom: 10px; }
+  .whale-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .whale-input-row input { flex: 3; font-family: monospace; direction: ltr; text-align: left; font-size: 12px; background: #0d1117; }
+  .whale-input-row select { flex: 1; min-width: 80px; font-size: 12px; }
+  .whale-controls { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .whale-controls button { flex: 1; min-width: 90px; font-size: 12px; padding: 8px; }
+  .add-wallet-btn { background: linear-gradient(135deg, #238636, #3fb950); border: none; color: white; }
+  .clear-wallet-btn { background: linear-gradient(135deg, #f85149, #d29922); border: none; color: white; }
+  .whale-count { font-size: 12px; color: #3fb950; font-weight: bold; margin-bottom: 8px; }
+  .addresses-box { background: #0d1117; border-radius: 8px; padding: 10px; min-height: 70px; margin-bottom: 10px; border: 2px dashed #30363d; max-height: 250px; overflow-y: auto; }
+  .address-chip { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1f6feb, #58a6ff); color: white; padding: 10px; border-radius: 8px; margin: 6px 0; font-family: monospace; font-size: 11px; font-weight: bold; gap: 6px; }
+  .address-chip .net-badge { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+  .address-chip .addr-text { flex: 1; direction: ltr; text-align: left; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .address-chip .remove { background: #f85149; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+  .history-container { max-height: 70vh; overflow-y: auto; }
+  .history-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin-bottom: 8px; border-right: 4px solid #d29922; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .history-symbol { font-weight: bold; font-size: 14px; }
+  .history-score { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f0b90b; color: #0d1117; font-weight: bold; }
+  .history-details { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 12px; }
+  .history-label { color: #8b949e; }
+  .history-value { color: #e6edf3; font-weight: 500; }
+  .history-date { font-size: 10px; color: #6e7681; margin-top: 4px; text-align: left; }
+
+  .tg-send-panel { background: linear-gradient(135deg, #161b22, #1a1f2e); border: 2px solid #229ED9; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .tg-send-title { font-size: 14px; font-weight: bold; color: #229ED9; margin-bottom: 10px; }
+  .tg-send-panel input { width: 100%; margin-bottom: 8px; font-size: 12px; font-family: monospace; direction: ltr; text-align: left; background: #0d1117; }
+  .tg-send-btn { width: 100%; background: linear-gradient(135deg, #229ED9, #0088cc); border: none; color: white; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+  .tg-status { font-size: 12px; padding: 8px; border-radius: 6px; margin-top: 10px; text-align: center; display: none; }
+  .tg-status.ok { background: #23863622; color: #3fb950; display: block; }
+  .tg-status.err { background: #f8514922; color: #f85149; display: block; }
+  .tg-status.wait { background: #d2992222; color: #d29922; display: block; }
+  .tg-hint { font-size: 10px; color: #8b949e; margin-top: 8px; text-align: center; line-height: 1.6; }
+  .tg-hint a { color: #229ED9; text-decoration: none; }
+
+  footer { text-align: center; font-size: 11px; color: #6e7681; margin-top: 20px; padding-top: 16px; border-top: 1px solid #21262d; }
+</style>
+</head>
+<body>
+
+  <h1>🚀 كاشف الانفجار الاحترافي</h1>
+  <div class="subtitle">10 مؤشرات فنية + تحليل متعدد الأطر الزمنية + Backtest</div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('explode', event)">⚡ قبل الانفجار</div>
+    <div class="tab" onclick="switchTab('radar', event)">🎯 الرادار</div>
+    <div class="tab" onclick="switchTab('whales', event)">🐋 المحافظ</div>
+    <div class="tab" onclick="switchTab('history', event)">📜 السجل</div>
+  </div>
+
+  <!-- ═══════ ⚡ تبويب كاشف الانفجار ═══════ -->
+  <div id="tab-explode">
+    <div class="single-search-box" style="border-color:#a371f7;">
+      <div class="single-search-title" style="color:#a371f7;">⚡ محرك الكشف الاحترافي</div>
+      <div style="font-size:11px; color:#8b949e; line-height:1.7;">
+        يفحص <b style="color:#a371f7;">10 مؤشرات فنية</b> متقدمة:
+        Bollinger Squeeze • Volume Anomaly • Multi-TF Momentum • RSI Divergence • MACD Cross • 
+        Higher Lows • Green Streak • ATR Contraction • Wyckoff Accumulation • Liquidity
+      </div>
+    </div>
+
+    <div class="controls">
+      <select id="explodeLimit">
+        <option value="30">فحص 30 عملة (سريع)</option>
+        <option value="50" selected>فحص 50 عملة (موصى به)</option>
+        <option value="80">فحص 80 عملة (دقيق)</option>
+      </select>
+      <select id="explodeMinScore">
+        <option value="70">🔥 فقط الإشارات المؤكدة (70%+)</option>
+        <option value="55" selected>⚡ قوية (55%+)</option>
+        <option value="40">📡 كل الإشارات (40%+)</option>
+      </select>
+    </div>
+    <div class="controls">
+      <button class="explode-btn" onclick="runExplodeScanner()" style="width:100%;">⚡ ابحث عن الانفجارات المحتملة</button>
+    </div>
+    <div class="controls">
+      <button id="autoBtn" onclick="toggleAutoScan()" style="background:linear-gradient(135deg,#1f6feb,#58a6ff); border:none; color:white;">🔄 تشغيل الفحص التلقائي</button>
+    </div>
+    <div style="font-size:10px; color:#8b949e; text-align:center; margin-bottom:8px;" id="autoStatus"></div>
+  </div>
+
+  <!-- ═══════ 🎯 الرادار ═══════ -->
+  <div id="tab-radar" style="display:none;">
+    <div class="single-search-box">
+      <div class="single-search-title">🔍 تحليل عملة محددة</div>
+      <div class="single-search-row">
+        <input type="text" id="symbolInput" placeholder="مثال: BTCUSDT" />
+        <button class="analyze-btn" onclick="analyzeSingle()">تحليل</button>
+      </div>
+    </div>
+    <div class="controls">
+      <select id="limitSelect">
+        <option value="10">أفضل 10</option>
+        <option value="20" selected>أفضل 20</option>
+        <option value="30">أفضل 30</option>
+      </select>
+      <button class="radar-btn" onclick="runRadar()">🚀 تشغيل الرادار</button>
+    </div>
+  </div>
+
+  <!-- ═══════ 🐋 المحافظ ═══════ -->
+  <div id="tab-whales" style="display:none;">
+    <div class="whale-panel">
+      <div class="whale-title">🐋 تتبع المحافظ الكبيرة</div>
+      <div class="whale-input-row">
+        <input type="text" id="walletAddress" placeholder="0x..." />
+        <select id="walletNetwork">
+          <option value="ETH">ETH</option><option value="BSC">BSC</option>
+          <option value="POLYGON">Polygon</option><option value="SOL">SOL</option>
+          <option value="TRON">TRON</option><option value="ARB">Arbitrum</option>
+          <option value="BTC">Bitcoin</option>
+        </select>
+      </div>
+      <div class="whale-controls">
+        <button class="add-wallet-btn" onclick="addWallet()">➕ إضافة</button>
+        <button class="clear-wallet-btn" onclick="clearWallets()">🗑️ مسح الكل</button>
+      </div>
+      <div class="whale-count" id="whaleCount">📊 عدد المحافظ: 0</div>
+      <div class="addresses-box" id="addressesBox">
+        <div class="empty" style="padding:15px; font-size:12px;">لا توجد محافظ مضافة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 📜 السجل ═══════ -->
+  <div id="tab-history" style="display:none;">
+    <div class="history-container" id="historyContainer">
+      <div class="empty">لا يوجد سجل بعد</div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div id="results"></div>
+
+  <!-- 📤 تلجرام -->
+  <div class="tg-send-panel">
+    <div class="tg-send-title">📤 إرسال إلى بوت تلجرام</div>
+    <input type="text" id="tgBotToken" placeholder="Bot Token" />
+    <input type="text" id="tgChatId" placeholder="Chat ID" />
+    <button class="tg-send-btn" id="tgSendBtn" onclick="sendToTelegram()">🚀 إرسال إلى تلجرام</button>
+    <div class="tg-status" id="tgStatus"></div>
+    <div class="tg-hint">
+      Token من <a href="https://t.me/BotFather" target="_blank">@BotFather</a> | 
+      Chat ID من <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>
+    </div>
+  </div>
+
+  <footer>⚡ كاشف الانفجار الاحترافي — Binance API</footer>
+
+<script>
+/* ==========================================================
+   🔧 المتغيرات
+   ========================================================== */
+let history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+let currentResults = [];
+let currentExplode = [];
+let wallets = JSON.parse(localStorage.getItem('trackedWallets') || '[]');
+let autoScanTimer = null;
+
+/* ==========================================================
+   📐 مكتبة المؤشرات الفنية
+   ========================================================== */
+
+// RSI
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for (let i = closes.length - period; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff > 0) gains += diff; else losses -= diff;
+  }
+  const avgGain = gains / period, avgLoss = losses / period;
+  if (avgLoss === 0) return 100;
+  return 100 - (100 / (1 + avgGain / avgLoss));
+}
+
+// EMA
+function calcEMA(data, period) {
+  if (data.length < period) return data[data.length - 1] || 0;
+  const k = 2 / (period + 1);
+  let ema = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < data.length; i++) ema = data[i] * k + ema * (1 - k);
+  return ema;
+}
+
+// MACD
+function calcMACD(closes) {
+  const ema12 = calcEMA(closes, 12);
+  const ema26 = calcEMA(closes, 26);
+  return ema12 - ema26;
+}
+
+// MACD Histogram (يحتاج بيانات أكثر)
+function calcMACDHistory(closes) {
+  const hist = [];
+  for (let i = 26; i <= closes.length; i++) {
+    const slice = closes.slice(0, i);
+    hist.push(calcEMA(slice, 12) - calcEMA(slice, 26));
+  }
+  return hist;
+}
+
+// Bollinger Bands
+function calcBB(closes, period = 20, mult = 2) {
+  const slice = closes.slice(-period);
+  if (slice.length < period) return { upper: 0, lower: 0, middle: 0, width: 0, squeeze: false, percentB: 0.5 };
+  const sma = slice.reduce((a, b) => a + b, 0) / period;
+  const variance = slice.reduce((a, b) => a + Math.pow(b - sma, 2), 0) / period;
+  const sd = Math.sqrt(variance);
+  const upper = sma + mult * sd;
+  const lower = sma - mult * sd;
+  const width = ((upper - lower) / sma) * 100;
+  const currentPrice = closes[closes.length - 1];
+  const percentB = (currentPrice - lower) / (upper - lower || 1);
+  return { upper, lower, middle: sma, width, squeeze: width < 4, percentB };
+}
+
+// ATR
+function calcATR(klines, period = 14) {
+  if (klines.length < period + 1) return 0;
+  const trs = [];
+  for (let i = 1; i < klines.length; i++) {
+    const h = parseFloat(klines[i][2]);
+    const l = parseFloat(klines[i][3]);
+    const pc = parseFloat(klines[i - 1][4]);
+    trs.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+  }
+  const recent = trs.slice(-period).reduce((a, b) => a + b, 0) / period;
+  const old = trs.slice(-period * 2, -period).reduce((a, b) => a + b, 0) / period || recent;
+  return { atr: recent, atrRatio: recent / (old || 1) };
+}
+
+// كشف Higher Lows
+function detectHigherLows(lows, count = 4) {
+  const recent = lows.slice(-count * 2);
+  const points = [];
+  for (let i = 1; i < recent.length - 1; i++) {
+    if (recent[i] < recent[i - 1] && recent[i] < recent[i + 1]) points.push({ i, v: recent[i] });
+  }
+  if (points.length < 2) return false;
+  return points[points.length - 1].v > points[points.length - 2].v;
+}
+
+// كشف RSI Divergence (صاعد)
+function detectBullishDivergence(closes) {
+  if (closes.length < 20) return false;
+  const half = Math.floor(closes.length / 2);
+  const price1 = Math.min(...closes.slice(-20, -10));
+  const price2 = Math.min(...closes.slice(-10));
+  const rsi1 = calcRSI(closes.slice(0, -10), 14);
+  const rsi2 = calcRSI(closes, 14);
+  return price2 < price1 && rsi2 > rsi1 + 3;
+}
+
+// كشف Pump & Dump
+function detectPumpDump(klines) {
+  const closes = klines.map(k => parseFloat(k[4]));
+  const vols = klines.map(k => parseFloat(k[5]));
+  if (closes.length < 20) return false;
+  
+  // فحص: هل هناك ارتفاع سريع ثم هبوط سريع؟
+  const max10 = Math.max(...closes.slice(-10));
+  const current = closes[closes.length - 1];
+  const dropFromTop = (max10 - current) / max10;
+  
+  // ارتفاع مفاجئ في بداية الفترة + هبوط حالي
+  const firstHalf = closes.slice(-20, -10);
+  const pumpRate = (max10 - Math.min(...firstHalf)) / Math.min(...firstHalf);
+  
+  return pumpRate > 0.15 && dropFromTop > 0.08;
+}
+
+/* ==========================================================
+   ⚡⚡⚡ المحرك الرئيسي للكشف ⚡⚡⚡
+   ========================================================== */
+async function runExplodeScanner() {
+  const limit = parseInt(document.getElementById('explodeLimit').value);
+  const minScore = parseInt(document.getElementById('explodeMinScore').value);
+  
+  showStatus('⚡ المرحلة 1/2: جلب بيانات السوق...', 'explode');
+  document.getElementById('results').innerHTML = '';
+  
+  try {
+    // 1) جلب كل الأزواج
+    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+    const data = await res.json();
+    
+    // 2) فلترة ذكية
+    const candidates = data
+      .filter(t => t.symbol.endsWith('USDT'))
+      .filter(t => parseFloat(t.quoteVolume) > 3_000_000) // سيولة كافية
+      .filter(t => !t.symbol.includes('UP') && !t.symbol.includes('DOWN'))
+      .filter(t => !t.symbol.includes('BULL') && !t.symbol.includes('BEAR'))
+      .filter(t => !['USDCUSDT','FDUSDUSDT','TUSDUSDT','BUSDUSDT','DAIUSDT','USDPUSDT','EURUSDT','GBPUSDT'].includes(t.symbol))
+      .filter(t => Math.abs(parseFloat(t.priceChangePercent)) < 12) // لم ينفجر بعد
+      .filter(t => parseFloat(t.priceChangePercent) > -8) // ليس في انهيار
+      .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+      .slice(0, limit);
+    
+    showStatus(`⚡ المرحلة 2/2: فحص ${candidates.length} عملة بعمق...`, 'explode');
+    
+    // 3) فحص متوازي (5 في كل دفعة)
+    const results = [];
+    const batchSize = 4;
+    
+    for (let i = 0; i < candidates.length; i += batchSize) {
+      const batch = candidates.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map(t => analyzeExplosionDeep(t).catch(() => null))
+      );
+      batchResults.forEach(r => { if (r && r.explodeScore >= minScore) results.push(r); });
+      
+      showStatus(`⚡ فحص ${Math.min(i + batchSize, candidates.length)}/${candidates.length} | وجد ${results.length} إشارة`, 'explode');
+    }
+    
+    // 4) ترتيب
+    results.sort((a, b) => b.explodeScore - a.explodeScore);
+    currentExplode = results;
+    
+    if (results.length === 0) {
+      showStatus('🔍 لم يتم العثور على إشارات قوية حالياً — جرب حساسية أقل', 'success');
+      return;
+    }
+    
+    showStatus(`✅ تم العثور على ${results.length} عملة بإشارات قوية!`, 'explode');
+    
+    // 5) عرض النتائج
+    let html = '';
+    results.forEach((r, i) => {
+      html += renderExplodeToken(r, i + 1);
+      history.unshift({
+        symbol: r.symbol, price: r.price, change: r.change,
+        score: r.explodeScore, recommendation: '⚡ قبل الانفجار',
+        date: new Date().toISOString()
+      });
+    });
+    
+    history = history.slice(0, 50);
+    localStorage.setItem('analysisHistory', JSON.stringify(history));
+    document.getElementById('results').innerHTML = html;
+    
+    // 6) صوت تنبيه
+    if (results.some(r => r.explodeScore >= 75)) {
+      playAlertSound();
+    }
+    
+  } catch (err) {
+    showStatus('❌ خطأ: ' + err.message, 'error');
+  }
+}
+
+/* ==========================================================
+   🧠 التحليل العميق (10 مؤشرات)
+   ========================================================== */
+async function analyzeExplosionDeep(t) {
+  const symbol = t.symbol;
+  
+  // جلب شموع متعددة الأطر الزمنية بالتوازي
+  const [k5m, k15m, k1h] = await Promise.all([
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=100`).then(r => r.json()),
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=50`).then(r => r.json()),
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=30`).then(r => r.json())
+  ]);
+  
+  if (!Array.isArray(k5m) || k5m.length < 30) return null;
+  
+  // استخراج
+  const closes5 = k5m.map(k => parseFloat(k[4]));
+  const highs5  = k5m.map(k => parseFloat(k[2]));
+  const lows5   = k5m.map(k => parseFloat(k[3]));
+  const opens5  = k5m.map(k => parseFloat(k[1]));
+  const vols5   = k5m.map(k => parseFloat(k[5]));
+  const qvols5  = k5m.map(k => parseFloat(k[7]));
+  
+  const closes15 = k15m.map(k => parseFloat(k[4]));
+  const closes1h = k1h.map(k => parseFloat(k[4]));
+  
+  const price = closes5[closes5.length - 1];
+  const vol24h = parseFloat(t.quoteVolume);
+  const change24h = parseFloat(t.priceChangePercent);
+  const high24h = parseFloat(t.highPrice);
+  const low24h = parseFloat(t.lowPrice);
+  
+  // ══════════════════════════════════════════
+  // 1️⃣ Volume Anomaly (وزن 18%)
+  // ══════════════════════════════════════════
+  const avgVol20 = vols5.slice(-20).reduce((a,b)=>a+b,0) / 20;
+  const recentVol5 = vols5.slice(-5).reduce((a,b)=>a+b,0) / 5;
+  const volumeRatio = recentVol5 / (avgVol20 || 1);
+  
+  let volScore = 0;
+  if (volumeRatio >= 3) volScore = 100;
+  else if (volumeRatio >= 2) volScore = 85;
+  else if (volumeRatio >= 1.5) volScore = 65;
+  else if (volumeRatio >= 1.2) volScore = 45;
+  else volScore = Math.max(0, volumeRatio * 30);
+  
+  // ══════════════════════════════════════════
+  // 2️⃣ Bollinger Band Squeeze (وزن 15%)
+  // ══════════════════════════════════════════
+  const bb = calcBB(closes5, 20, 2);
+  let bbScore = 0;
+  if (bb.width < 2) bbScore = 100;
+  else if (bb.width < 3) bbScore = 85;
+  else if (bb.width < 4) bbScore = 70;
+  else if (bb.width < 6) bbScore = 50;
+  else if (bb.width < 8) bbScore = 30;
+  else bbScore = 15;
+  
+  // %B - هل السعر في وسط النطاق (استعداد للانفجار)؟
+  const bbCenter = bb.percentB > 0.4 && bb.percentB < 0.75;
+  if (bbCenter) bbScore += 10;
+  
+  // ══════════════════════════════════════════
+  // 3️⃣ Multi-Timeframe Momentum (وزن 15%)
+  // ══════════════════════════════════════════
+  const rsi5  = calcRSI(closes5, 14);
+  const rsi15 = calcRSI(closes15, 14);
+  const rsi1h = calcRSI(closes1h, 14);
+  
+  const rsi5Bullish = rsi5 > 45 && rsi5 < 75;
+  const rsi15Bullish = rsi15 > 45 && rsi15 < 75;
+  const rsi1hBullish = rsi1h > 40 && rsi1h < 75;
+  
+  let mtfScore = 0;
+  if (rsi5Bullish) mtfScore += 35;
+  if (rsi15Bullish) mtfScore += 35;
+  if (rsi1hBullish) mtfScore += 30;
+  
+  // ══════════════════════════════════════════
+  // 4️⃣ Breakout Setup (وزن 12%)
+  // ══════════════════════════════════════════
+  const recent20High = Math.max(...highs5.slice(-20));
+  const recent20Low = Math.min(...lows5.slice(-20));
+  const distToResistance = (recent20High - price) / price;
+  
+  let breakoutScore = 0;
+  if (distToResistance < 0.005) breakoutScore = 100; // على وشك الاختراق
+  else if (distToResistance < 0.01) breakoutScore = 85;
+  else if (distToResistance < 0.02) breakoutScore = 65;
+  else if (distToResistance < 0.04) breakoutScore = 45;
+  else breakoutScore = 25;
+  
+  // ══════════════════════════════════════════
+  // 5️⃣ RSI Divergence (وزن 10%)
+  // ══════════════════════════════════════════
+  const hasBullDiv = detectBullishDivergence(closes5);
+  const divScore = hasBullDiv ? 100 : 30;
+  
+  // ══════════════════════════════════════════
+  // 6️⃣ MACD Cross (وزن 8%)
+  // ══════════════════════════════════════════
+  const macdHist = calcMACDHistory(closes5);
+  const lastHist = macdHist[macdHist.length - 1] || 0;
+  const prevHist = macdHist[macdHist.length - 2] || 0;
+  const prevPrevHist = macdHist[macdHist.length - 3] || 0;
+  
+  // انتقال من سلبي إلى موجب
+  let macdScore = 30;
+  if (prevPrevHist < prevHist && prevHist < lastHist && lastHist > 0) macdScore = 100;
+  else if (prevHist < lastHist && lastHist > 0) macdScore = 80;
+  else if (lastHist > 0) macdScore = 60;
+  
+  // ══════════════════════════════════════════
+  // 7️⃣ Higher Lows (وزن 8%)
+  // ══════════════════════════════════════════
+  const hasHL = detectHigherLows(lows5, 4);
+  const hlScore = hasHL ? 100 : 40;
+  
+  // ══════════════════════════════════════════
+  // 8️⃣ Green Candle Streak (وزن 6%)
+  // ══════════════════════════════════════════
+  let greenCount = 0;
+  for (let i = closes5.length - 1; i >= closes5.length - 8; i--) {
+    if (closes5[i] > opens5[i]) greenCount++; else break;
+  }
+  const greenScore = greenCount >= 4 ? 100 :
+                     greenCount >= 3 ? 80 :
+                     greenCount >= 2 ? 60 :
+                     greenCount >= 1 ? 40 : 20;
+  
+  // ══════════════════════════════════════════
+  // 9️⃣ ATR Contraction (وزن 5%)
+  // ══════════════════════════════════════════
+  const atrData = calcATR(k5m, 14);
+  // ATR منخفض = تقلب ضعيف = استعداد للانفجار
+  const atrScore = atrData.atrRatio < 0.7 ? 100 :
+                   atrData.atrRatio < 0.85 ? 80 :
+                   atrData.atrRatio < 1 ? 60 : 30;
+  
+  // ══════════════════════════════════════════
+  // 🔟 Liquidity (وزن 3%)
+  // ══════════════════════════════════════════
+  const liqScore = vol24h > 100_000_000 ? 100 :
+                   vol24h > 50_000_000 ? 90 :
+                   vol24h > 20_000_000 ? 75 :
+                   vol24h > 10_000_000 ? 55 : 35;
+  
+  // ══════════════════════════════════════════
+  // حساب النتيجة النهائية
+  // ══════════════════════════════════════════
+  let explodeScore = Math.round(
+    volScore * 0.18 +
+    bbScore * 0.15 +
+    mtfScore * 0.15 +
+    breakoutScore * 0.12 +
+    divScore * 0.10 +
+    macdScore * 0.08 +
+    hlScore * 0.08 +
+    greenScore * 0.06 +
+    atrScore * 0.05 +
+    liqScore * 0.03
+  );
+  
+  // ══════════════════════════════════════════
+  // 🚨 Penalties (عقوبات)
+  // ══════════════════════════════════════════
+  const warnings = [];
+  
+  // Pump & Dump
+  if (detectPumpDump(k5m)) {
+    explodeScore -= 30;
+    warnings.push('⚠️ نمط Pump & Dump');
+  }
+  
+  // RSI مرتفع جداً (تشبع شرائي)
+  if (rsi5 > 80) {
+    explodeScore -= 15;
+    warnings.push('⚠️ RSI مشبع شرائياً');
+  }
+  
+  // السعر ارتفع كثير اليوم
+  if (change24h > 10) {
+    explodeScore -= 10;
+    warnings.push('⚠️ ارتفع كثير اليوم');
+  }
+  
+  explodeScore = Math.max(0, Math.min(100, explodeScore));
+  
+  // ══════════════════════════════════════════
+  // Backtest: اختبار الإشارة على آخر 50 شمعة
+  // ══════════════════════════════════════════
+  const backtest = runBacktest(k5m);
+  
+  // ══════════════════════════════════════════
+  // تصنيف المستوى
+  // ══════════════════════════════════════════
+  let level, levelClass;
+  if (explodeScore >= 80)      { level = '🔥🔥🔥 انفجار مؤكد'; levelClass = 'ultra'; }
+  else if (explodeScore >= 70) { level = '🔥🔥 إشارة قوية';   levelClass = 'strong'; }
+  else if (explodeScore >= 55) { level = '🔥 إشارة متوسطة';   levelClass = 'medium'; }
+  else                         { level = '⚡ إشارة ضعيفة';     levelClass = 'weak'; }
+  
+  // ══════════════════════════════════════════
+  // الأهداف
+  // ══════════════════════════════════════════
+  const entry = price;
+  const target1 = price * 1.04;
+  const target2 = price * 1.10;
+  const target3 = price * 1.20;
+  const stop = price * 0.965;
+  
+  return {
+    symbol, name: symbol.replace('USDT',''),
+    price, change: change24h, high: high24h, low: low24h, volume: vol24h,
+    explodeScore, level, levelClass, warnings,
+    volumeRatio, greenCount, rsi5, rsi15, rsi1h,
+    bbWidth: bb.width, distToResistance: distToResistance * 100,
+    hasBullDiv, hasHL, macdScore, atrRatio: atrData.atrRatio,
+    backtest,
+    signals: {
+      volume:      { score: Math.round(volScore), on: volumeRatio > 1.5, label: `×${volumeRatio.toFixed(2)}` },
+      bbSqueeze:   { score: Math.round(bbScore), on: bb.width < 4, label: `${bb.width.toFixed(2)}%` },
+      momentum:    { score: Math.round(mtfScore), on: rsi5Bullish && rsi15Bullish, label: `RSI ${rsi5.toFixed(0)}/${rsi15.toFixed(0)}/${rsi1h.toFixed(0)}` },
+      breakout:    { score: Math.round(breakoutScore), on: distToResistance < 0.02, label: `${(distToResistance*100).toFixed(2)}%` },
+      divergence:  { score: Math.round(divScore), on: hasBullDiv, label: hasBullDiv ? '✅ صاعد' : '❌ لا يوجد' },
+      macd:        { score: Math.round(macdScore), on: macdScore >= 80, label: macdScore >= 80 ? '✅ تقاطع' : '⏳ انتظار' },
+      higherLows:  { score: Math.round(hlScore), on: hasHL, label: hasHL ? '✅ قمم صاعدة' : '❌ لا' },
+      greenStreak: { score: Math.round(greenScore), on: greenCount >= 2, label: `${greenCount} شمعة` },
+      atr:         { score: Math.round(atrScore), on: atrData.atrRatio < 0.85, label: `×${atrData.atrRatio.toFixed(2)}` },
+      liquidity:   { score: Math.round(liqScore), on: vol24h > 10_000_000, label: `$${(vol24h/1_000_000).toFixed(0)}M` }
+    },
+    entry, target1, target2, target3, stop
+  };
+}
+
+/* ==========================================================
+   📊 Backtest — اختبار الإشارة على آخر 50 شمعة
+   ========================================================== */
+function runBacktest(klines) {
+  const closes = klines.map(k => parseFloat(k[4]));
+  const highs  = klines.map(k => parseFloat(k[2]));
+  const lows   = klines.map(k => parseFloat(k[3]));
+  const vols   = klines.map(k => parseFloat(k[5]));
+  
+  let wins = 0, losses = 0, totalReturn = 0;
+  const maxTest = Math.min(30, closes.length - 20);
+  
+  for (let i = 20; i < 20 + maxTest; i++) {
+    // شرط دخول مبسط: حجم فوق المتوسط + RSI صاعد
+    const avgVol = vols.slice(i - 20, i).reduce((a,b)=>a+b,0) / 20;
+    const volSpike = vols[i] > avgVol * 1.8;
+    const rsi = calcRSI(closes.slice(0, i), 14);
+    const rsiOk = rsi > 45 && rsi < 75;
+    
+    if (volSpike && rsiOk) {
+      const entry = closes[i];
+      // نراقب 5 شموع قادمة
+      let maxHigh = entry, minLow = entry;
+      for (let j = i + 1; j < Math.min(i + 6, closes.length); j++) {
+        maxHigh = Math.max(maxHigh, highs[j]);
+        minLow = Math.min(minLow, lows[j]);
+      }
+      const ret = (maxHigh - entry) / entry * 100;
+      const drop = (entry - minLow) / entry * 100;
+      
+      if (ret >= 3) { wins++; totalReturn += ret; }
+      else if (drop >= 3) { losses++; totalReturn -= drop; }
+    }
+  }
+  
+  const total = wins + losses;
+  const winRate = total > 0 ? (wins / total * 100) : 0;
+  const avgReturn = total > 0 ? (totalReturn / total) : 0;
+  
+  return { wins, losses, total, winRate: winRate.toFixed(0), avgReturn: avgReturn.toFixed(2) };
+}
+
+/* ==========================================================
+   🎨 عرض بطاقة الانفجار
+   ========================================================== */
+function renderExplodeToken(r, rank) {
+  const fmt = n => n.toLocaleString('en-US', { maximumFractionDigits: 8 });
+  const changeClass = r.change >= 0 ? 'up' : 'down';
+  const sign = r.change >= 0 ? '+' : '';
+  
+  const color = r.explodeScore >= 80 ? '#f85149' :
+                r.explodeScore >= 70 ? '#a371f7' :
+                r.explodeScore >= 55 ? '#3fb950' : '#58a6ff';
+  
+  const sig = r.signals;
+  const barColor = (score) => score >= 70 ? '#3fb950' : score >= 45 ? '#f0b90b' : '#f85149';
+  
+  const sigRow = (icon, label, data) => `
+    <div class="signal-row">
+      <span class="signal-label"><span class="icon">${icon}</span>${label}</span>
+      <span style="display:flex; align-items:center; gap:6px;">
+        <span class="signal-value ${data.score >= 70 ? 'on' : data.score >= 45 ? '' : 'off'}">${data.label}</span>
+        <span class="signal-bar"><span class="signal-bar-fill" style="width:${data.score}%; background:${barColor(data.score)};"></span></span>
+      </span>
+    </div>
+  `;
+  
+  const warningsHtml = r.warnings.length > 0 
+    ? `<div style="margin-top:6px;">${r.warnings.map(w => `<span class="warning-tag">${w}</span>`).join('')}</div>`
+    : '';
+  
+  const bt = r.backtest;
+  const backtestHtml = bt.total > 0 ? `
+    <div class="backtest-box">
+      <div class="backtest-title">📊 Backtest — اختبار على آخر ${bt.total} إشارة مشابهة:</div>
+      <div class="backtest-row"><span class="label">نسبة النجاح:</span><span class="value ${bt.winRate >= 60 ? 'win' : 'loss'}">${bt.winRate}%</span></div>
+      <div class="backtest-row"><span class="label">الصفقات الرابحة:</span><span class="value win">${bt.wins} ✅</span></div>
+      <div class="backtest-row"><span class="label">الصفقات الخاسرة:</span><span class="value loss">${bt.losses} ❌</span></div>
+      <div class="backtest-row"><span class="label">متوسط العائد:</span><span class="value ${bt.avgReturn > 0 ? 'win' : 'loss'}">${bt.avgReturn > 0 ? '+' : ''}${bt.avgReturn}%</span></div>
+    </div>
+  ` : '';
+  
+  return `
+    <div class="token explode ${r.levelClass === 'ultra' ? 'ultra' : ''}">
+      <div class="token-header">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span class="rank" style="background:${color};">${rank}</span>
+          <span class="token-name">${r.name}</span>
+          <span class="explode-badge ${r.levelClass}">${r.level}</span>
+        </div>
+        <span class="token-symbol">${r.symbol}</span>
+      </div>
+      
+      <div class="token-stats">
+        <div><span class="stat-name">💰 السعر:</span> <span class="stat-val">$${fmt(r.price)}</span></div>
+        <div><span class="stat-name">📈 24س:</span> <span class="stat-val ${changeClass}">${sign}${r.change.toFixed(2)}%</span></div>
+        <div><span class="stat-name">🔥 الحجم ×:</span> <span class="stat-val hot">${r.volumeRatio.toFixed(2)}x</span></div>
+        <div><span class="stat-name">📊 BB Width:</span> <span class="stat-val">${r.bbWidth.toFixed(2)}%</span></div>
+      </div>
+      
+      <div class="explode-meter ${r.levelClass === 'ultra' ? 'ultra' : ''}">
+        <div class="explode-meter-label">🎯 احتمال الانفجار المبكر</div>
+        <div class="explode-meter-value">${r.explodeScore}%</div>
+        <div class="explode-meter-bar"><div class="explode-meter-fill" style="width:${r.explodeScore}%"></div></div>
+        <div class="explode-meter-info">
+          <span>💎 تجميع: ${r.bbWidth < 4 ? 'ممتاز' : r.bbWidth < 6 ? 'جيد' : 'متوسط'}</span>
+          <span>⚡ مومنتوم: ${r.rsi5.toFixed(0)}</span>
+        </div>
+      </div>
+      
+      <div class="explode-signals">
+        <div class="explode-signals-title">
+          <span>⚡ الإشارات (10 مؤشرات)</span>
+          <span>${Object.values(sig).filter(s => s.score >= 70).length}/10 قوية</span>
+        </div>
+        
+        <div class="signal-group">
+          <div class="signal-group-title">🎯 المؤشرات الأساسية (60%)</div>
+          ${sigRow('🔥','ارتفاع الحجم', sig.volume)}
+          ${sigRow('📉','انضغاط BB', sig.bbSqueeze)}
+          ${sigRow('📊','مومنتوم MTF', sig.momentum)}
+          ${sigRow('🚀','اختراق', sig.breakout)}
+        </div>
+        
+        <div class="signal-group">
+          <div class="signal-group-title">✅ مؤشرات التأكيد (30%)</div>
+          ${sigRow('📈','RSI Divergence', sig.divergence)}
+          ${sigRow('⚡','MACD Cross', sig.macd)}
+          ${sigRow('📐','Higher Lows', sig.higherLows)}
+          ${sigRow('🟢','شموع خضراء', sig.greenStreak)}
+        </div>
+        
+        <div class="signal-group">
+          <div class="signal-group-title">🌐 السياق (10%)</div>
+          ${sigRow('📊','ATR منخفض', sig.atr)}
+          ${sigRow('💵','السيولة', sig.liquidity)}
+        </div>
+        
+        ${warningsHtml}
+      </div>
+      
+      ${backtestHtml}
+      
+      <div class="rec-box ${r.levelClass === 'ultra' ? 'ultra' : 'explode'}">
+        <span class="rec-emoji">${r.explodeScore >= 80 ? '🔥' : r.explodeScore >= 70 ? '⚡' : '📡'}</span>
+        <div>
+          <div class="rec-title">${r.level} — ${r.explodeScore >= 70 ? 'دخول مبكر موصى به' : 'مراقبة'}</div>
+          <div class="rec-score">
+            ${Object.values(sig).filter(s => s.score >= 70).length} مؤشر قوي | 
+            RSI: ${r.rsi5.toFixed(0)} | 
+            BB: ${r.bbWidth.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+      
+      <div class="strategy">
+        <div class="strategy-item"><span class="strategy-label">📍 دخول:</span> <span class="strategy-value entry">$${fmt(r.entry)}</span></div>
+        <div class="strategy-item"><span class="strategy-label">🎯 هدف 1 (+4%):</span> <span class="strategy-value target">$${fmt(r.target1)}</span></div>
+        <div class="strategy-item"><span class="strategy-label">🎯 هدف 2 (+10%):</span> <span class="strategy-value target">$${fmt(r.target2)}</span></div>
+        <div class="strategy-item"><span class="strategy-label">🚀 هدف 3 (+20%):</span> <span class="strategy-value target">$${fmt(r.target3)}</span></div>
+        <div class="strategy-item" style="grid-column:span 2;"><span class="strategy-label">🛑 وقف خسارة:</span> <span class="strategy-value stop">$${fmt(r.stop)} (-3.5%)</span></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================
+   🔄 الفحص التلقائي
+   ========================================================== */
+function toggleAutoScan() {
+  const btn = document.getElementById('autoBtn');
+  const status = document.getElementById('autoStatus');
+  
+  if (autoScanTimer) {
+    clearInterval(autoScanTimer);
+    autoScanTimer = null;
+    btn.textContent = '🔄 تشغيل الفحص التلقائي';
+    btn.style.background = 'linear-gradient(135deg,#1f6feb,#58a6ff)';
+    status.textContent = '';
+  } else {
+    btn.textContent = '⏹️ إيقاف الفحص التلقائي';
+    btn.style.background = 'linear-gradient(135deg,#f85149,#d29922)';
+    runExplodeScanner();
+    autoScanTimer = setInterval(() => {
+      const now = new Date().toLocaleTimeString('ar-EG');
+      status.textContent = `⏱️ آخر فحص: ${now} — الفحص التالي بعد 3 دقائق`;
+      runExplodeScanner();
+    }, 3 * 60 * 1000);
+  }
+}
+
+/* ==========================================================
+   🔊 صوت التنبيه
+   ========================================================== */
+function playAlertSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+    
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 1200;
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.5);
+    }, 300);
+  } catch(e) {}
+}
+
+/* ==========================================================
+   🎯 الرادار العادي (مختصر)
+   ========================================================== */
+async function runRadar() {
+  const limit = document.getElementById('limitSelect').value;
+  showStatus('📡 جاري سحب البيانات...', 'loading');
+  document.getElementById('results').innerHTML = '';
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+    const data = await res.json();
+    const filtered = data
+      .filter(t => t.symbol.endsWith('USDT'))
+      .filter(t => parseFloat(t.quoteVolume) > 5_000_000)
+      .filter(t => !t.symbol.includes('UP') && !t.symbol.includes('DOWN'))
+      .sort((a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
+      .slice(0, parseInt(limit));
+    currentResults = [];
+    let html = '';
+    filtered.forEach((t, i) => {
+      const a = analyzeToken(t);
+      currentResults.push(a);
+      html += renderToken(a, i + 1);
+    });
+    document.getElementById('results').innerHTML = html;
+    showStatus('✅ تم', 'success');
+    setTimeout(hideStatus, 1500);
+  } catch (err) { showStatus('❌ خطأ: ' + err.message, 'error'); }
+}
+
+async function analyzeSingle() {
+  const sym = document.getElementById('symbolInput').value.trim().toUpperCase();
+  if (!sym) return;
+  const fullSym = sym.endsWith('USDT') ? sym : sym + 'USDT';
+  showStatus('🔍 جاري التحليل...', 'loading');
+  document.getElementById('results').innerHTML = '';
+  try {
+    const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${fullSym}`);
+    const data = await res.json();
+    if (data.code) { showStatus('❌ غير موجودة', 'error'); return; }
+    const a = analyzeToken(data);
+    document.getElementById('results').innerHTML = renderToken(a, 1, true);
+    showStatus('✅', 'success');
+    setTimeout(hideStatus, 1500);
+  } catch (err) { showStatus('❌ خطأ', 'error'); }
+}
+
+function analyzeToken(t) {
+  const price = parseFloat(t.lastPrice);
+  const change = parseFloat(t.priceChangePercent);
+  const high = parseFloat(t.highPrice);
+  const low = parseFloat(t.lowPrice);
+  const volume = parseFloat(t.quoteVolume);
+  let score = 50;
+  if (change > 15) score += 25; else if (change > 8) score += 18; else if (change > 3) score += 12; else if (change > 0) score += 5;
+  if (volume > 100_000_000) score += 15; else if (volume > 50_000_000) score += 10; else if (volume > 10_000_000) score += 5;
+  score = Math.max(0, Math.min(100, score));
+  let recommendation, recClass, emoji;
+  if (score >= 75) { recommendation = 'شراء قوي'; recClass = 'buy'; emoji = '🟢'; }
+  else if (score >= 60) { recommendation = 'شراء'; recClass = 'weak-buy'; emoji = '🟡'; }
+  else if (score >= 45) { recommendation = 'انتظار'; recClass = 'hold'; emoji = '⚪'; }
+  else { recommendation = 'بيع'; recClass = 'sell'; emoji = '🔴'; }
+  return {
+    symbol: t.symbol, name: t.symbol.replace('USDT',''),
+    price, change, high, low, volume, score, recommendation, recClass, emoji,
+    entry: price, target: price * 1.05, stop: price * 0.95
+  };
+}
+
+function renderToken(a, rank, isSingle = false) {
+  const cls = isSingle ? 'single' : 'radar';
+  const c = a.change >= 0 ? 'up' : 'down';
+  const s = a.change >= 0 ? '+' : '';
+  const fmt = n => n.toLocaleString('en-US', { maximumFractionDigits: 8 });
+  return `
+    <div class="token ${cls}">
+      <div class="token-header">
+        <div><span class="rank">${rank}</span><span class="token-name">${a.name}</span></div>
+        <span class="token-symbol">${a.symbol}</span>
+      </div>
+      <div class="token-stats">
+        <div><span class="stat-name">💰:</span> <span class="stat-val">$${fmt(a.price)}</span></div>
+        <div><span class="stat-name">📈:</span> <span class="stat-val ${c}">${s}${a.change.toFixed(2)}%</span></div>
+        <div><span class="stat-name">🔺:</span> <span class="stat-val">$${fmt(a.high)}</span></div>
+        <div><span class="stat-name">🔻:</span> <span class="stat-val">$${fmt(a.low)}</span></div>
+        <div style="grid-column:span 2;"><span class="stat-name">💵:</span> <span class="stat-val">$${fmt(a.volume)}</span></div>
+      </div>
+      <div class="rec-box ${a.recClass}" style="background:#23863633;border:1px solid #2ea043;">
+        <span class="rec-emoji">${a.emoji}</span>
+        <div><div class="rec-title">${a.recommendation}</div><div class="rec-score">${a.score}/100</div></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================
+   📜 السجل + 🐋 المحافظ + 📤 تلجرام
+   ========================================================== */
+function renderHistory() {
+  const box = document.getElementById('historyContainer');
+  if (history.length === 0) { box.innerHTML = '<div class="empty">لا يوجد سجل</div>'; return; }
+  box.innerHTML = history.map(h => {
+    const d = new Date(h.date);
+    const fmt = n => n.toLocaleString('en-US', { maximumFractionDigits: 8 });
+    const s = h.change >= 0 ? '+' : '';
+    const c = h.change >= 0 ? 'up' : 'down';
+    return `<div class="history-item">
+      <div class="history-header"><span class="history-symbol">${h.symbol}</span><span class="history-score">${h.score}/100</span></div>
+      <div class="history-details">
+        <div><span class="history-label">السعر:</span> <span class="history-value">$${fmt(h.price)}</span></div>
+        <div><span class="history-label">التغير:</span> <span class="history-value ${c}">${s}${h.change.toFixed(2)}%</span></div>
+        <div style="grid-column:span 2;"><span class="history-label">التوصية:</span> <span class="history-value">${h.recommendation}</span></div>
+      </div>
+      <div class="history-date">${d.toLocaleString('ar-EG')}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveWallets() { localStorage.setItem('trackedWallets', JSON.stringify(wallets)); }
+function renderWallets() {
+  const box = document.getElementById('addressesBox');
+  document.getElementById('whaleCount').textContent = `📊 عدد المحافظ: ${wallets.length}`;
+  if (wallets.length === 0) { box.innerHTML = '<div class="empty" style="padding:15px; font-size:12px;">لا توجد محافظ</div>'; return; }
+  box.innerHTML = wallets.map((w, i) => `
+    <div class="address-chip">
+      <span class="net-badge">${w.network}</span>
+      <span class="addr-text" title="${w.address}">${w.address}</span>
+      <span class="remove" onclick="removeWallet(${i})">×</span>
+    </div>`).join('');
+}
+function addWallet() {
+  const addr = document.getElementById('walletAddress').value.trim();
+  const net = document.getElementById('walletNetwork').value;
+  if (!addr || addr.length < 20) { alert('⚠️ العنوان غير صالح'); return; }
+  if (wallets.some(w => w.address.toLowerCase() === addr.toLowerCase())) { alert('⚠️ مضافة مسبقاً'); return; }
+  wallets.push({ address: addr, network: net, addedAt: new Date().toISOString() });
+  saveWallets(); renderWallets();
+  document.getElementById('walletAddress').value = '';
+}
+function removeWallet(i) { wallets.splice(i, 1); saveWallets(); renderWallets(); }
+function clearWallets() { if (!wallets.length || !confirm('مسح الكل؟')) return; wallets = []; saveWallets(); renderWallets(); }
+
+async function sendToTelegram() {
+  const btn = document.getElementById('tgSendBtn');
+  const token = document.getElementById('tgBotToken').value.trim();
+  const chatId = document.getElementById('tgChatId').value.trim();
+  if (!token || !chatId) { showTgStatus('⚠️ أدخل البيانات', 'err'); return; }
+  if (!currentExplode.length && !currentResults.length && !wallets.length) { showTgStatus('⚠️ لا توجد بيانات', 'err'); return; }
+  localStorage.setItem('tgBotToken', token);
+  localStorage.setItem('tgChatId', chatId);
+  btn.disabled = true;
+  showTgStatus('⏳ جاري الإرسال...', 'wait');
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: buildTelegramMessage(), parse_mode: 'HTML', disable_web_page_preview: true })
+    });
+    const data = await res.json();
+    if (data.ok) { showTgStatus('✅ تم الإرسال!', 'ok'); setTimeout(() => { document.getElementById('tgStatus').style.display = 'none'; }, 5000); }
+    else showTgStatus(`❌ ${data.description}`, 'err');
+  } catch (err) { showTgStatus(`❌ ${err.message}`, 'err'); }
+  finally { btn.disabled = false; }
+}
+
+function buildTelegramMessage() {
+  const now = new Date().toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' });
+  const fmt = n => n.toLocaleString('en-US', { maximumFractionDigits: 6 });
+  let msg = `🚀 <b>كاشف الانفجار الاحترافي</b>\n🕐 ${now}\n━━━━━━━━━━━━━━━━━━━\n\n`;
+  if (currentExplode.length) {
+    msg += `⚡ <b>إشارات قوية (${currentExplode.length}):</b>\n\n`;
+    currentExplode.forEach((r, i) => {
+      const s = r.change >= 0 ? '+' : '';
+      msg += `<b>${i + 1}. ${r.name}</b> <code>${r.symbol}</code>\n`;
+      msg += `🎯 الاحتمال: <b>${r.explodeScore}%</b> — ${r.level}\n`;
+      msg += `💰 $${fmt(r.price)} | ${s}${r.change.toFixed(2)}%\n`;
+      msg += `🔥 حجم ×${r.volumeRatio.toFixed(2)} | RSI ${r.rsi5.toFixed(0)}\n`;
+      if (r.backtest.total > 0) msg += `📊 Backtest: ${r.backtest.winRate}% نجاح (${r.backtest.total})\n`;
+      msg += `📍 دخول $${fmt(r.entry)} | 🎯 $${fmt(r.target1)} | 🛑 $${fmt(r.stop)}\n`;
+      if (r.warnings.length) msg += `⚠️ ${r.warnings.join(' | ')}\n`;
+      msg += `───────────────────\n`;
+    });
+  }
+  if (currentResults.length) {
+    msg += `\n🎯 <b>الرادار (${currentResults.length}):</b>\n`;
+    currentResults.forEach((a, i) => {
+      const s = a.change >= 0 ? '+' : '';
+      msg += `<b>${i + 1}. ${a.name}</b> ${a.recommendation} (${a.score}/100) | ${s}${a.change.toFixed(2)}%\n`;
+    });
+  }
+  if (wallets.length) {
+    msg += `\n🐋 <b>المحافظ (${wallets.length}):</b>\n`;
+    wallets.forEach((w, i) => { msg += `${i + 1}. [${w.network}] <code>${w.address}</code>\n`; });
+  }
+  msg += `\n━━━━━━━━━━━━━━━━━━━\n🤖 كاشف الانفجار الاحترافي`;
+  return msg;
+}
+
+function showTgStatus(text, type) {
+  const s = document.getElementById('tgStatus');
+  s.textContent = text; s.className = 'tg-status ' + type;
+}
+
+/* ==========================================================
+   🎯 التبويبات + الحالة
+   ========================================================== */
+function switchTab(tab, ev) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (ev && ev.target) ev.target.classList.add('active');
+  ['explode','radar','whales','history'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.getElementById('results').innerHTML = '';
+  hideStatus();
+  if (tab === 'history') renderHistory();
+  if (tab === 'whales') renderWallets();
+}
+
+function showStatus(text, type) {
+  const s = document.getElementById('status');
+  s.textContent = text; s.className = 'status ' + type;
+}
+function hideStatus() { document.getElementById('status').className = 'status'; }
+
+/* ==========================================================
+   🔄 تهيئة
+   ========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('tgBotToken');
+  const chat = localStorage.getItem('tgChatId');
+  if (token) document.getElementById('tgBotToken').value = token;
+  if (chat) document.getElementById('tgChatId').value = chat;
+  renderWallets();
+});
+document.getElementById('symbolInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') analyzeSingle(); });
+document.getElementById('walletAddress')?.addEventListener('keypress', e => { if (e.key === 'Enter') addWallet(); });
+</script>
+</body>
+</html>
